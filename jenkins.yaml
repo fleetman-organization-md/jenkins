@@ -16,24 +16,24 @@ metadata:
   name: jenkins
   namespace: jenkins
 rules:
-- apiGroups: [""]
-  resources: ["pods","services"]
-  verbs: ["create","delete","get","list","patch","update","watch"]
-- apiGroups: ["apps"]
-  resources: ["deployments"]
-  verbs: ["create","delete","get","list","patch","update","watch"]
-- apiGroups: [""]
-  resources: ["pods/exec"]
-  verbs: ["create","delete","get","list","patch","update","watch"]
-- apiGroups: [""]
-  resources: ["pods/log"]
-  verbs: ["get","list","watch"]
-- apiGroups: [""]
-  resources: ["secrets"]
-  verbs: ["get"]
-- apiGroups: [""]
-  resources: ["persistentvolumeclaims"]
-  verbs: ["create","delete","get","list","patch","update","watch"]
+  - apiGroups: [""]
+    resources: ["pods", "services"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+  - apiGroups: [""]
+    resources: ["pods/exec"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["persistentvolumeclaims"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
 
 ---
 apiVersion: rbac.authorization.k8s.io/v1beta1
@@ -46,19 +46,20 @@ roleRef:
   kind: Role
   name: jenkins
 subjects:
-- kind: ServiceAccount
-  name: jenkins
+  - kind: ServiceAccount
+    name: jenkins
 ---
 # Allows jenkins to create persistent volumes
+# yamllint disable-line rule:line-length
 # This cluster role binding allows anyone in the "manager" group to read secrets in any namespace.
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: jenkins-crb
 subjects:
-- kind: ServiceAccount
-  namespace: jenkins
-  name: jenkins
+  - kind: ServiceAccount
+    namespace: jenkins
+    name: jenkins
 roleRef:
   kind: ClusterRole
   name: jenkinsclusterrole
@@ -70,9 +71,9 @@ metadata:
   # "namespace" omitted since ClusterRoles are not namespaced
   name: jenkinsclusterrole
 rules:
-- apiGroups: [""]
-  resources: ["persistentvolumes"]
-  verbs: ["create","delete","get","list","patch","update","watch"]
+  - apiGroups: [""]
+    resources: ["persistentvolumes"]
+    verbs: ["create", "delete", "get", "list", "patch", "update", "watch"]
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -106,8 +107,17 @@ spec:
             - name: docker-sock-volume
               mountPath: "/var/run/docker.sock"
           imagePullPolicy: IfNotPresent
+          resources:
+            requests:
+              memory: 500Mi
+              cpu: 200m
+            limits:
+              memory: 500Mi
+              cpu: 200m
       volumes:
+        # yamllint disable-line rule:line-length
         # This allows jenkins to use the docker daemon on the host, for running builds
+        # yamllint disable-line rule:line-length
         # see https://stackoverflow.com/questions/27879713/is-it-ok-to-run-docker-from-inside-docker
         - name: docker-sock-volume
           hostPath:
